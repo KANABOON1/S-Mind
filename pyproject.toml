@@ -1,0 +1,39 @@
+[project]
+name = "smind"
+version = "0.1.0"
+description = "S-Mind: Internalizing Multi-View Geometry for Spatial Intelligence"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "Apache-2.0"
+dependencies = [
+    "torch==2.11.0",
+    "vllm==0.24.0",
+    "transformers==5.9.0",
+    "verl==0.9.1",
+    "peft==0.21.2",
+    "datasets==5.1.0",
+    "pandas==3.1.0",
+    "pyarrow==26.0.0",
+    "numpy==2.3.5",
+    "pillow==12.3.0",
+    "safetensors==0.8.0",
+    "huggingface_hub==1.33.0",
+    "pyyaml==6.0.3",
+    "omegaconf==2.3.1",
+    "imagehash==4.3.2",
+]
+
+[project.urls]
+Homepage = "https://kanaboon1.github.io/S-Mind/"
+Models = "https://huggingface.co/KANABOON1/S-Mind"
+Dataset = "https://huggingface.co/datasets/KANABOON1/S-Mind-Data"
+
+[project.optional-dependencies]
+notebooks = ["matplotlib==3.11.2", "ipykernel==7.4.0"]
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

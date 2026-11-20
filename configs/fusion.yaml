@@ -1,0 +1,22 @@
+layout: "2,4"
+train:
+  - data/smind/fusion/maps_train
+  - data/smind/fusion/maps_scannet_train
+dev:
+  - data/smind/fusion/maps_dev
+  - data/smind/fusion/maps_scannet_dev
+  - data/smind/fusion/maps_scannetx_dev
+epochs: 4
+batch: 64
+lora_rank: 64
+lora_lr: 2.0e-4
+embed_lr: 3.0e-4
+head_lr: 1.0e-3
+layer_lr: 0.05
+conf_alpha: 0.5
+local_points: true
+local_conf: true
+micro_tokens: 16384
+eval_micro_tokens: 4096
+evals: 4
+seed: 17

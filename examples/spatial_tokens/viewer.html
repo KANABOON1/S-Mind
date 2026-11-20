@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>S-Mind spatial tokens</title>
+<style>
+:root {
+  --bg: #12111a; --surface: #1a1925; --line: #2e2b40; --ink: #ece9f6; --ink2: #b9b4cc; --ink3: #8a86a0;
+  --violet: #b7a3f5; --violet-wash: #241f3a;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.6 var(--sans); }
+main { max-width: 1180px; margin: 0 auto; padding: 28px max(16px, env(safe-area-inset-left, 0px)) 40px max(16px, env(safe-area-inset-right, 0px)); }
+.eyebrow { font: 500 12px/1 ui-monospace, monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--violet); }
+h1 { font: 500 24px/1.35 var(--serif); margin: 10px 0 18px; text-wrap: balance; }
+.stage { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; touch-action: none;
+  border: 1px solid var(--line); background: radial-gradient(120% 90% at 50% 38%, #1b1e2c 0%, #0d0e15 55%, #07080c 100%); }
+canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+.overlay { position: absolute; left: 14px; top: 12px; right: 14px; display: flex; justify-content: space-between; gap: 12px; pointer-events: none; }
+.now { font: 500 14px/1.4 var(--serif); color: var(--ink); text-shadow: 0 1px 6px #000; max-width: 70%; }
+.now b { color: var(--violet); font: 600 13px/1 ui-monospace, monospace; margin-right: 8px; }
+.controls { display: flex; gap: 6px; pointer-events: auto; }
+button { font: 500 13px/1 var(--sans); color: var(--ink2); background: #1f1d2cdd; border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; cursor: pointer; }
+button:hover { color: var(--ink); } button.on { color: var(--bg); background: var(--violet); border-color: var(--violet); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0; }
+.chips button { border-radius: 8px; text-align: left; max-width: 100%; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 22px; margin-top: 22px; }
+@media (max-width: 760px) { .cols { grid-template-columns: 1fr; } .now { max-width: 100%; } .overlay { flex-direction: column; } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; min-width: 0; }
+.card h2 { font: 600 12px/1 ui-monospace, monospace; letter-spacing: .1em; text-transform: uppercase; color: var(--ink3); margin: 0 0 12px; }
+.photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+.photo { position: relative; } .photo img { width: 100%; border-radius: 6px; display: block; border: 2px solid var(--c); }
+.photo span { position: absolute; left: 6px; top: 6px; background: var(--c); color: #111; font: 700 11px/1 var(--sans); padding: 4px 6px; border-radius: 4px; }
+.options { margin: 12px 0 0; padding: 0; list-style: none; color: var(--ink2); }
+.options li.gold { color: var(--ink); }
+.reasoning p { margin: 0 0 8px; color: var(--ink3); transition: color .3s; }
+.reasoning p.active { color: var(--ink); }
+.reasoning p.active::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--violet); margin-right: 8px; vertical-align: middle; }
+.answer { display: inline-block; margin-top: 6px; padding: 4px 10px; border-radius: 6px; background: var(--violet-wash); color: var(--violet); font-weight: 600; }
+.note { color: var(--ink3); font-size: 13px; margin-top: 14px; }
+</style>
+</head>
+<body>
+<main>
+  <div class="eyebrow" id="eyebrow">S-Mind · decoded spatial tokens</div>
+  <h1 id="question"></h1>
+  <div class="stage" id="stage">
+    <canvas id="cv"></canvas>
+    <div class="overlay">
+      <div class="now" id="now"></div>
+      <div class="controls"><button id="play">Play</button><button id="view3d" class="on">3D</button><button id="viewtop">Top</button></div>
+    </div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="cols">
+    <div class="card"><h2>Input</h2><div class="photos" id="photos"></div><ul class="options" id="options"></ul></div>
+    <div class="card reasoning"><h2>Reasoning</h2><div id="reasoning"></div><div id="answer"></div></div>
+  </div>
+  <p class="note">Each point is a visual token of a photo, placed where the readout decodes it from the spatial tokens and colored
+    from the photo. z<sub>0</sub> is the scene after the images, in the first image's frame, with the decoded cameras;
+    each z<sub>k</sub> is the scene the model holds after declaring a viewpoint, in that viewpoint's frame. Drag to look around.</p>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const DATA = /*DATA*/null;
+const CAM = ["#f2b75b", "#62c6e3", "#ee86a8", "#8fd18a", "#c7a2f5", "#f08f6b", "#7fb3f0", "#e3d36b"];
+const VIOLET = "#b7a3f5", UP = 6, MORPH = 700;
+const $ = (id) => document.getElementById(id);
+const T = (p) => new THREE.Vector3(p[0], p[2], -p[1]);
+
+const renderer = new THREE.WebGLRenderer({ canvas: $("cv"), antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(48, 16 / 9, 0.01, 200);
+let cur = 0, from = 0, t0 = 0, mode = "3d", theta = 0, phi = 1.15, dist = 2.1, playing = null, target = new THREE.Vector3();
+
+function cellsOf(grid) { const out = []; let o = 0; for (const [r, c] of grid) { out.push([o, r, c]); o += r * c; } return out; }
+
+function buildPhoto(k, offset, rows, cols) {
+  const z0 = DATA.states[0], cam = z0.cameras[k], pts = (s) => DATA.states[s].points;
+  const depth = (i) => Math.hypot(pts(0)[i][0] - cam[0], pts(0)[i][1] - cam[1], pts(0)[i][2]);
+  const keep = (i) => DATA.states[0].keep[i];
+  const verts = [];
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const i = offset + r * cols + c;
+    if (keep(i)) verts.push([i, i, i, i, 0, 0, [(c + .5) / cols, 1 - (r + .5) / rows]]);
+    if (r + 1 >= rows || c + 1 >= cols) continue;
+    const q = [i, i + 1, i + cols, i + cols + 1];
+    if (!q.every(keep)) continue;
+    const d = q.map(depth);
+    if (Math.max(...d) / Math.max(Math.min(...d), 1e-6) > 1.4) continue;
+    for (let a = 0; a < UP; a++) for (let b = 0; b < UP; b++) {
+      if (a === 0 && b === 0) continue;
+      verts.push([q[0], q[1], q[2], q[3], b / UP, a / UP, [(c + .5 + b / UP) / cols, 1 - (r + .5 + a / UP) / rows]]);
+    }
+  }
+  const n = verts.length, pos = new Float32Array(3 * n), uv = new Float32Array(2 * n);
+  verts.forEach((v, j) => { uv[2 * j] = v[6][0]; uv[2 * j + 1] = v[6][1]; });
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+  const tex = new THREE.TextureLoader().load(DATA.photos[k], () => draw());
+  tex.minFilter = THREE.LinearFilter;
+  const mat = new THREE.ShaderMaterial({
+    uniforms: { map: { value: tex }, size: { value: 1 } },
+    vertexShader: `uniform float size; varying vec2 vUv;
+      void main() { vUv = uv; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv;
+        gl_PointSize = clamp(size / -mv.z, 1.5, 14.0); }`,
+    fragmentShader: `uniform sampler2D map; varying vec2 vUv;
+      void main() { vec2 d = gl_PointCoord - 0.5; if (dot(d, d) > 0.25) discard; gl_FragColor = vec4(texture2D(map, vUv).rgb, 1.0); }` });
+  const obj = new THREE.Points(geo, mat);
+  obj.userData = { verts, place: (s) => {
+    const P = pts(s), out = new Float32Array(3 * n);
+    verts.forEach(([a, b, c, d, u, v], j) => {
+      const at = (x) => (1 - u) * (1 - v) * P[a][x] + u * (1 - v) * P[b][x] + (1 - u) * v * P[c][x] + u * v * P[d][x];
+      out[3 * j] = at(0); out[3 * j + 1] = at(2); out[3 * j + 2] = -at(1);
+    });
+    return out;
+  } };
+  obj.userData.at = DATA.states.map((_, s) => obj.userData.place(s));
+  scene.add(obj);
+  return obj;
+}
+
+function frustum(x, y, phiH, color, size, label) {
+  const g = new THREE.Group(), f = [Math.sin(phiH), Math.cos(phiH)], s = [f[1], -f[0]], z = camZ;
+  const o = [x, y, z], L = size, W = size * 0.55, H = size * 0.38;
+  const far = (a, b) => [x + f[0] * L + s[0] * a, y + f[1] * L + s[1] * a, z + b];
+  const c = [far(W, H), far(-W, H), far(-W, -H), far(W, -H)];
+  const seg = [];
+  for (const p of c) seg.push(T(o), T(p));
+  for (let i = 0; i < 4; i++) seg.push(T(c[i]), T(c[(i + 1) % 4]));
+  g.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg),
+    new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.95, depthTest: false })));
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(size * 0.08, 12, 8), new THREE.MeshBasicMaterial({ color, depthTest: false })).translateX(x).translateY(z).translateZ(-y));
+  if (label) {
+    const cv = document.createElement("canvas"); cv.width = cv.height = 64;
+    const ctx = cv.getContext("2d"); ctx.fillStyle = color; ctx.beginPath(); ctx.arc(32, 32, 26, 0, 7); ctx.fill();
+    ctx.fillStyle = "#111"; ctx.font = "bold 32px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(label, 32, 34);
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), depthTest: false, sizeAttenuation: false }));
+    sp.scale.set(0.045, 0.045, 1); sp.position.copy(T([x, y, z + H * 1.9])); g.add(sp);
+  }
+  return g;
+}
+
+let photos = [], marks = [], extent = 1, camZ = 0, centers = [], ease = 1, ring = null;
+function init() {
+  const all = DATA.states[0].points.filter((_, i) => DATA.states[0].keep[i]);
+  const r = all.map((p) => Math.hypot(p[0], p[1])).sort((a, b) => a - b);
+  extent = Math.max(r[Math.floor(0.9 * (r.length - 1))], 0.5);
+  const zs = all.map((p) => p[2]).sort((a, b) => a - b);
+  camZ = zs[Math.floor(0.5 * (zs.length - 1))];
+  const mid = (a) => { const b = [...a].sort((u, v) => u - v); return b[Math.floor(0.5 * (b.length - 1))]; };
+  centers = DATA.states.map((st) => {
+    const kept = st.points.filter((_, i) => DATA.states[0].keep[i]);
+    return T([mid(kept.map((p) => p[0])), mid(kept.map((p) => p[1])), mid(kept.map((p) => p[2]))]);
+  });
+  photos = cellsOf(DATA.grid).map(([o, rows, cols], k) => buildPhoto(k, o, rows, cols));
+  ring = new THREE.Mesh(new THREE.RingGeometry(extent * 1.08, extent * 1.1, 96), new THREE.MeshBasicMaterial({ color: 0x2b2d3d, side: THREE.DoubleSide }));
+  ring.rotation.x = -Math.PI / 2; ring.position.y = -0.02; scene.add(ring);
+  DATA.states.forEach((s, k) => {
+    const g = new THREE.Group();
+    if (k === 0) s.cameras.forEach(([x, y, h], i) => g.add(frustum(x, y, h, CAM[i % CAM.length], extent * 0.16, String(i + 1))));
+    else g.add(frustum(0, 0, 0, VIOLET, extent * 0.2, ""));
+    g.visible = false; scene.add(g); marks.push(g);
+  });
+}
+
+function setSize() {
+  const w = $("cv").clientWidth, h = $("cv").clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  const scale = h * renderer.getPixelRatio() / 2 / Math.tan(camera.fov * Math.PI / 360);
+  for (const p of photos) p.material.uniforms.size.value = scale * extent * 0.016;
+}
+
+function view() {
+  const top = mode === "top";
+  const ph = top ? 0.02 : phi, d = dist * extent * (top ? 1.15 : 1);
+  target.copy(centers[from]).lerp(centers[cur], ease);
+  ring.position.x = target.x; ring.position.z = target.z;
+  camera.position.set(target.x + d * Math.sin(ph) * Math.sin(theta), d * Math.cos(ph), target.z + d * Math.sin(ph) * Math.cos(theta));
+  camera.up.set(0, top ? 0 : 1, top ? -1 : 0); camera.lookAt(target);
+}
+
+function draw(now) {
+  now = now || performance.now();
+  const a = Math.min(1, (now - t0) / MORPH), e = a < .5 ? 2 * a * a : 1 - (-2 * a + 2) ** 2 / 2;
+  for (const p of photos) {
+    const A = p.userData.at[from], B = p.userData.at[cur], pos = p.geometry.attributes.position.array;
+    for (let i = 0; i < pos.length; i++) pos[i] = A[i] + (B[i] - A[i]) * e;
+    p.geometry.attributes.position.needsUpdate = true;
+  }
+  marks.forEach((g, k) => g.visible = k === cur);
+  ease = e; view(); renderer.render(scene, camera);
+  if (a < 1) requestAnimationFrame(draw);
+}
+
+function go(k) {
+  from = cur; cur = k; t0 = performance.now();
+  [...$("chips").children].forEach((b, i) => b.classList.toggle("on", i === k));
+  const s = DATA.states[k];
+  $("now").innerHTML = `<b>z${k}</b>` + esc(k === 0 ? "the scene after the images" : s.viewpoint);
+  [...$("reasoning").children].forEach((p, i) => p.classList.toggle("active", i === s.sentence));
+  requestAnimationFrame(draw);
+}
+
+const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+function text() {
+  $("question").textContent = DATA.question;
+  if (DATA.title) $("eyebrow").textContent = "S-Mind · decoded spatial tokens · " + DATA.title;
+  $("photos").innerHTML = DATA.photos.map((src, i) => `<div class="photo" style="--c:${CAM[i % CAM.length]}"><img src="${src}" alt="image ${i + 1}"><span>${i + 1}</span></div>`).join("");
+  $("options").innerHTML = DATA.options.map((o) => `<li class="${o.startsWith(DATA.answer + ".") ? "gold" : ""}">${esc(o)}</li>`).join("");
+  $("reasoning").innerHTML = DATA.sentences.map((s) => `<p>${esc(s)}</p>`).join("");
+  $("answer").innerHTML = DATA.answer ? `<span class="answer">Answer ${esc(DATA.answer)}</span>` : "";
+  $("chips").innerHTML = DATA.states.map((s, k) => `<button>z${k} · ${esc(k === 0 ? "after the images" : s.viewpoint)}</button>`).join("");
+  [...$("chips").children].forEach((b, k) => b.onclick = () => { stop(); go(k); });
+}
+
+function stop() { if (playing) clearInterval(playing); playing = null; $("play").textContent = "Play"; }
+$("play").onclick = () => {
+  if (playing) return stop();
+  $("play").textContent = "Pause";
+  playing = setInterval(() => go((cur + 1) % DATA.states.length), 2200);
+};
+$("view3d").onclick = () => { mode = "3d"; $("view3d").classList.add("on"); $("viewtop").classList.remove("on"); draw(); };
+$("viewtop").onclick = () => { mode = "top"; $("viewtop").classList.add("on"); $("view3d").classList.remove("on"); draw(); };
+let drag = null;
+$("cv").addEventListener("pointerdown", (e) => { drag = [e.clientX, e.clientY, theta, phi]; $("cv").setPointerCapture(e.pointerId); });
+$("cv").addEventListener("pointermove", (e) => {
+  if (!drag) return;
+  theta = Math.max(-0.9, Math.min(0.9, drag[2] - (e.clientX - drag[0]) * 0.004));
+  phi = Math.max(0.5, Math.min(1.45, drag[3] - (e.clientY - drag[1]) * 0.004));
+  draw();
+});
+$("cv").addEventListener("pointerup", () => drag = null);
+$("cv").addEventListener("wheel", (e) => { e.preventDefault(); dist = Math.max(1.2, Math.min(6, dist * Math.exp(e.deltaY * 0.001))); draw(); }, { passive: false });
+window.addEventListener("resize", () => { setSize(); draw(); });
+
+text(); init(); setSize(); go(0);
+</script>
+</body>
+</html>

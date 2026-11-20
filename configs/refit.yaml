@@ -1,0 +1,5 @@
+maps: data/smind/fusion
+epochs: 20
+batch: 64
+lr: 1.0e-3
+layer_lr: 0.05

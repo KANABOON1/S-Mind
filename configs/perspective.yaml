@@ -1,0 +1,15 @@
+data: data/smind/sft/gpt-6-astra/perspective
+dev:
+  - data/smind/fusion/maps_dev
+  - data/smind/fusion/maps_scannet_dev
+geo_weight: 0.1
+view_weight: 0.1
+epochs: 2
+batch: 64
+lora_rank: 64
+lora_lr: 2.0e-4
+warmup: 0.1
+micro_tokens: 8192
+eval_micro_tokens: 8192
+evals: 4
+seed: 17
