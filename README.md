@@ -4,6 +4,7 @@
 
 **Internalizing Multi-View Geometry for Spatial Intelligence**
 
+[![arXiv](https://img.shields.io/badge/arXiv-2611.28649-b31b1b?style=flat-square&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2611.28649)
 [![Project Page](https://img.shields.io/badge/Project-Page-7A55E6?style=flat-square&logo=googlechrome&logoColor=white)](https://kanaboon1.github.io/S-Mind/)
 [![Models](https://img.shields.io/badge/%F0%9F%A4%97%20Models-S--Mind-ffbd45?style=flat-square)](https://huggingface.co/KANABOON1/S-Mind)
 [![Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Dataset-S--Mind--Data-ffbd45?style=flat-square)](https://huggingface.co/datasets/KANABOON1/S-Mind-Data)
@@ -137,10 +138,11 @@ If you find S-Mind useful, please cite:
 
 ```bibtex
 @article{fu2026smind,
-  title   = {S-Mind: Internalizing Multi-View Geometry for Spatial Intelligence},
+  title   = {{S-Mind}: Internalizing Multi-View Geometry for Spatial Intelligence},
   author  = {Fu, Muxin and Yu, Peike and Zhang, Guibin and Zhou, Wenrui and Liu, Runze and Feng, Lang and
              Yang, Fuchao and Chen, Feng and Li, Yixuan and Zhang, Mengao and Zhang, Shiying and Shen, Wen and
              Pan, Ling and Yan, Shuicheng and An, Bo},
+  journal = {arXiv preprint arXiv:2611.28649},
   year    = {2026}
 }
 ```
