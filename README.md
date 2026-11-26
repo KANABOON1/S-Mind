@@ -6,9 +6,8 @@
 
 [![arXiv](https://img.shields.io/badge/arXiv-2611.28649-b31b1b?style=flat-square&logo=arxiv&logoColor=white)](https://arxiv.org/abs/2611.28649)
 [![Project Page](https://img.shields.io/badge/Project-Page-7A55E6?style=flat-square&logo=googlechrome&logoColor=white)](https://kanaboon1.github.io/S-Mind/)
-[![Models](https://img.shields.io/badge/%F0%9F%A4%97%20Models-S--Mind-ffbd45?style=flat-square)](https://huggingface.co/KANABOON1/S-Mind)
-[![Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Dataset-S--Mind--Data-ffbd45?style=flat-square)](https://huggingface.co/datasets/KANABOON1/S-Mind-Data)
-[![License](https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square)](LICENSE)
+[![Models](https://img.shields.io/badge/Models-S--Mind-ffbd45?style=flat-square&logo=huggingface)](https://huggingface.co/KANABOON1/S-Mind)
+[![Papers with Code](https://img.shields.io/badge/dynamic/xml?url=https%3A%2F%2Fpaperswithcode.co%2Fapi%2Fv1%2Fpapers%2F2611.28649%2Fleaderboard-badge.svg%3Feval%3D50870%26live%3D1&query=substring-after%28%2F%2F%2A%5Blocal-name%28%29%3D%27title%27%5D%2C%20%27%3A%20%27%29&label=Papers%20with%20Code&color=16837a&style=flat-square&logo=paperswithcode&logoColor=white)](https://paperswithcode.co/api/v1/papers/2611.28649/leaderboard-badge-link?eval=50870)
 
 </div>
 
